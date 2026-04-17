@@ -2,7 +2,7 @@ node_modules/
 .wrangler/
 .claude/
 data/
-assets/
+/assets/
 jobs_tmp.json
 .env
 *.local
