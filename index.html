@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Gender Bias Analyzer</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- Embedded sample data — works from file:// without a server.
+       On GitHub Pages / Cloudflare Pages, app.js fetch() takes precedence. -->
+  <script src="data/embedded.js"></script>
+</head>
+<body>
+
+<!-- ── Header ────────────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <div class="logo">AI</div>
+  <div class="header-text">
+    <h1>AI Gender Bias Analyzer</h1>
+    <p>Comparing Gemini · ChatGPT · Deepseek persona generation against US Census baselines</p>
+  </div>
+  <div class="header-actions">
+    <span id="data-status" class="muted text-xs"></span>
+    <button class="btn btn-ghost btn-sm" id="export-btn" title="Export analysis as JSON">Export</button>
+  </div>
+</header>
+
+<!-- ── Main layout ────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Sidebar: job list -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="job-search" placeholder="Search jobs, companies…" />
+      </div>
+      <div class="filter-row">
+        <select id="filter-source">
+          <option value="">All Sources</option>
+          <option value="indeed">Indeed</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="glassdoor">Glassdoor</option>
+        </select>
+        <select id="filter-bias">
+          <option value="">All Bias Levels</option>
+          <option value="minimal">Minimal</option>
+          <option value="low">Low</option>
+          <option value="moderate">Moderate</option>
+          <option value="high">High</option>
+          <option value="severe">Severe</option>
+        </select>
+        <select id="sort-jobs">
+          <option value="bias-desc">Highest Bias</option>
+          <option value="bias-asc">Lowest Bias</option>
+          <option value="title-asc">Title A–Z</option>
+          <option value="source">Source</option>
+        </select>
+      </div>
+    </div>
+    <div class="jobs-list" id="jobs-list">
+      <div class="loading"><div class="spinner"></div> Loading jobs…</div>
+    </div>
+  </aside>
+
+  <!-- Content: job detail / welcome -->
+  <main class="content" id="content">
+    <div class="welcome" id="welcome-screen">
+      <div class="welcome-icon">📊</div>
+      <h2>Select a job to explore</h2>
+      <p>
+        Click any job in the sidebar to view AI-generated personas,<br />
+        token usage, and bias analysis vs. US Census baselines.
+      </p>
+    </div>
+
+    <!-- Job detail (hidden until a job is selected) -->
+    <div id="job-detail" class="hidden"></div>
+  </main>
+</div>
+
+<script src="assets/js/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "ai-bias-analyzer",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "kv:create": "wrangler kv namespace create JOB_DATA",
+    "kv:create:preview": "wrangler kv namespace create JOB_DATA --preview",
+    "tail": "wrangler tail",
+    "trigger": "node scripts/trigger.js"
+  },
+  "dependencies": {
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.109.0"
+  }
+}

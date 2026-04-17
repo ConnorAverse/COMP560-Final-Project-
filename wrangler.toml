@@ -1,0 +1,35 @@
+name = "ai-bias-analyzer"
+main = "src/index.js"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Static frontend served from /public
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Cloudflare Workers AI — no API key required, billed per token on your CF account
+[ai]
+binding = "AI"
+
+# KV Namespace for persistent storage
+# After running `npm run kv:create`, paste the returned id below.
+# Then run `npm run kv:create:preview` and paste that id in preview_id.
+[[kv_namespaces]]
+binding = "JOB_DATA"
+id = "e6a3d21036af403481eb8919846037ea"
+preview_id = "0e94a54b6cff41f1a93897421d40be68"
+
+# Cron trigger — runs full pipeline daily at 2am UTC
+[triggers]
+# Every 2 hours — 12 runs/day, ~360 AI calls/day, well under 10k free Neurons/day
+crons = ["0 */2 * * *"]
+
+[vars]
+# How many people to generate per job per model
+PEOPLE_PER_JOB = "100"
+# Batch size per AI call (Workers AI handles ~25 well)
+BATCH_SIZE = "25"
+# Comma-separated search terms for job scraping
+SEARCH_TERMS = "software engineer,registered nurse,financial analyst,marketing manager,construction manager,data scientist,elementary school teacher,mechanical engineer,human resources manager,lawyer"

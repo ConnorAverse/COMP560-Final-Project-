@@ -1,0 +1,8 @@
+node_modules/
+.wrangler/
+.claude/
+data/
+assets/
+jobs_tmp.json
+.env
+*.local

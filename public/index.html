@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Gender Bias Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <div class="logo">AI</div>
+  <div class="header-text">
+    <h1>AI Gender Bias Analyzer</h1>
+    <p>LLaMA 3.1 · Gemma 7B · DeepSeek R1 — powered by Cloudflare Workers AI</p>
+  </div>
+  <div class="header-actions">
+    <span id="data-status" class="muted text-xs"></span>
+    <button class="btn btn-ghost btn-sm" id="pipeline-btn">⚙ Pipeline</button>
+    <button class="btn btn-ghost btn-sm" id="export-btn">Export</button>
+  </div>
+</header>
+
+<!-- ── Pipeline drawer ────────────────────────────────────────────────────── -->
+<div id="pipeline-drawer" class="pipeline-drawer hidden">
+  <div class="pipeline-drawer-inner">
+    <div class="pipeline-header">
+      <h2>Pipeline Controls</h2>
+      <button class="btn btn-ghost btn-sm" id="pipeline-close">✕</button>
+    </div>
+
+    <div class="pipeline-info">
+      <p>Runs on Cloudflare Workers AI — no external API keys needed.</p>
+      <p>Models: <strong>LLaMA 3.1 8B</strong> (ChatGPT role) · <strong>Gemma 7B</strong> (Gemini role) · <strong>DeepSeek R1 Distill</strong></p>
+    </div>
+
+    <div class="pipeline-steps">
+      <!-- Step 1: Scrape -->
+      <div class="pipeline-step" id="step-scrape">
+        <div class="step-header">
+          <span class="step-num">1</span>
+          <div class="step-info">
+            <strong>Scrape Jobs</strong>
+            <span class="muted text-xs">Indeed RSS · LinkedIn · Glassdoor</span>
+          </div>
+          <span class="step-status" id="status-scrape">idle</span>
+        </div>
+        <button class="btn btn-accent btn-sm" id="btn-scrape">Run Scrape</button>
+      </div>
+
+      <!-- Step 2: Generate -->
+      <div class="pipeline-step" id="step-generate">
+        <div class="step-header">
+          <span class="step-num">2</span>
+          <div class="step-info">
+            <strong>Generate Personas</strong>
+            <span class="muted text-xs" id="gen-info">25 per batch · 3 models · N jobs</span>
+          </div>
+          <span class="step-status" id="status-generate">idle</span>
+        </div>
+        <div class="gen-controls">
+          <select id="gen-model">
+            <option value="all">All 3 Models</option>
+            <option value="llama">LLaMA 3.1 8B</option>
+            <option value="gemma">Gemma 7B</option>
+            <option value="deepseek">DeepSeek R1</option>
+          </select>
+          <select id="gen-job">
+            <option value="all">All Jobs</option>
+          </select>
+          <input type="number" id="gen-batches" value="4" min="1" max="20" title="Batches per model (×25 = people)" />
+          <button class="btn btn-accent btn-sm" id="btn-generate">Generate</button>
+        </div>
+        <div class="progress-wrap hidden" id="gen-progress-wrap">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="gen-progress-fill"></div>
+          </div>
+          <span class="progress-label" id="gen-progress-label">0 / 0 batches</span>
+        </div>
+      </div>
+
+      <!-- Step 3: Analyze -->
+      <div class="pipeline-step" id="step-analyze">
+        <div class="step-header">
+          <span class="step-num">3</span>
+          <div class="step-info">
+            <strong>Analyze Bias</strong>
+            <span class="muted text-xs">Census comparison · std dev scoring</span>
+          </div>
+          <span class="step-status" id="status-analyze">idle</span>
+        </div>
+        <button class="btn btn-accent btn-sm" id="btn-analyze">Run Analysis</button>
+      </div>
+    </div>
+
+    <!-- Last run info -->
+    <div id="pipeline-last-run" class="muted text-xs" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)"></div>
+
+    <!-- Danger zone -->
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost btn-sm" id="btn-reset" style="color:var(--bias-high)">⚠ Reset All Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main layout ────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="job-search" placeholder="Search occupations…" />
+      </div>
+      <div class="filter-row">
+        <select id="filter-source">
+          <option value="">All Sources</option>
+          <option value="indeed">Indeed</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="glassdoor">Glassdoor</option>
+          <option value="mock">Simulated</option>
+        </select>
+        <select id="filter-bias">
+          <option value="">All Bias Levels</option>
+          <option value="minimal">Minimal</option>
+          <option value="low">Low</option>
+          <option value="moderate">Moderate</option>
+          <option value="high">High</option>
+          <option value="severe">Severe</option>
+        </select>
+        <select id="sort-jobs">
+          <option value="bias-desc">Highest Bias</option>
+          <option value="bias-asc">Lowest Bias</option>
+          <option value="title-asc">Title A–Z</option>
+          <option value="source">Source</option>
+        </select>
+      </div>
+    </div>
+    <div class="jobs-list" id="jobs-list">
+      <div class="loading"><div class="spinner"></div> Loading…</div>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="content" id="content">
+    <div class="welcome" id="welcome-screen">
+      <div class="welcome-icon">📊</div>
+      <h2>Select a job to explore</h2>
+      <p>Use <strong>⚙ Pipeline</strong> to scrape jobs and generate personas,<br/>then click any job to view bias analysis.</p>
+    </div>
+    <div id="job-detail" class="hidden"></div>
+  </main>
+</div>
+
+<script src="/assets/js/app.js" type="module"></script>
+</body>
+</html>
