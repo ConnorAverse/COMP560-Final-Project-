@@ -39,3 +39,7 @@ npm run deploy    # production
 ## Live Demo
 
 [ai-bias-analyzer.ruhpellz.workers.dev](https://ai-bias-analyzer.ruhpellz.workers.dev)
+
+## Presentation
+
+[Google Slides](https://docs.google.com/presentation/d/1PnuVqy1934IJYr9mtn5blN02hcbl3SuKJn0XwtxGbn8/edit)
